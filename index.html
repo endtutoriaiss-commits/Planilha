@@ -3,292 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sniper Risk Tracker</title>
+    <title>Sniper Gamer Dash</title>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --panel-bg: #161b22;
-            --text-main: #c9d1d9;
-            --accent-neon: #58a6ff;
-            --win-green: #3fb950;
-            --loss-red: #f85149;
-            --border-color: #30363d;
+            --neon-green: #00ff41;
+            --neon-blue: #00f2ff;
+            --neon-red: #ff3131;
+            --bg-dark: #050505;
+            --panel-bg: #111;
         }
 
         body {
-            font-family: 'Courier New', Courier, monospace;
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
-            flex-direction: column;
-            align-items: center;
+            justify-content: center;
         }
 
-        .container {
+        .dashboard {
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             background: var(--panel-bg);
+            border: 2px solid #333;
+            border-radius: 15px;
             padding: 20px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 0 15px rgba(88, 166, 255, 0.1);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.1);
         }
 
         h1 {
+            color: var(--neon-blue);
             text-align: center;
-            color: var(--accent-neon);
+            font-size: 1.5rem;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 20px;
+            letter-spacing: 3px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
         }
 
-        .input-group {
+        .stat-card {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 10px;
             margin-bottom: 15px;
-            display: flex;
-            flex-direction: column;
+            border-left: 4px solid var(--neon-blue);
         }
 
         label {
+            display: block;
+            font-size: 0.8rem;
+            color: #888;
             margin-bottom: 5px;
-            font-weight: bold;
-            color: #8b949e;
+            text-transform: uppercase;
         }
 
         input {
-            background-color: var(--bg-color);
-            border: 1px solid var(--border-color);
-            color: #fff;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 16px;
-            font-family: inherit;
-        }
-
-        input:focus {
+            width: 100%;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.4rem;
+            font-weight: bold;
             outline: none;
-            border-color: var(--accent-neon);
-            box-shadow: 0 0 5px rgba(88, 166, 255, 0.5);
+            padding: 5px 0;
+            border-bottom: 1px dashed #444;
         }
 
-        .target-display {
-            background: rgba(88, 166, 255, 0.1);
-            border-left: 4px solid var(--accent-neon);
+        input:focus { border-bottom-color: var(--neon-blue); }
+
+        .target-box {
+            background: rgba(0, 255, 65, 0.1);
+            border: 1px solid var(--neon-green);
             padding: 15px;
+            border-radius: 10px;
+            text-align: center;
             margin: 20px 0;
-            border-radius: 4px;
-            font-size: 1.2em;
+        }
+
+        .target-box span {
+            display: block;
+            font-size: 2rem;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
         }
 
         button {
             width: 100%;
             padding: 15px;
-            background-color: var(--win-green);
-            color: #fff;
+            background: var(--neon-green);
             border: none;
-            border-radius: 6px;
-            font-size: 18px;
+            border-radius: 8px;
             font-weight: bold;
+            font-size: 1rem;
             cursor: pointer;
+            color: black;
             text-transform: uppercase;
-            margin-top: 10px;
-            transition: 0.3s;
+            box-shadow: 0 4px 0 #008f24;
         }
 
-        button:hover {
-            background-color: #2ea043;
-        }
+        button:active { transform: translateY(3px); box-shadow: none; }
 
-        .btn-clear {
-            background-color: var(--loss-red);
-            margin-top: 15px;
-        }
-
-        .btn-clear:hover {
-            background-color: #da3633;
-        }
-
-        /* Tabela de Histórico */
-        table {
+        .history-table {
             width: 100%;
-            border-collapse: collapse;
             margin-top: 30px;
+            border-collapse: collapse;
+            font-size: 0.9rem;
         }
 
-        th, td {
-            border-bottom: 1px solid var(--border-color);
-            padding: 10px;
-            text-align: left;
-        }
+        th { text-align: left; color: #666; padding: 10px; border-bottom: 1px solid #333; }
+        td { padding: 10px; border-bottom: 1px solid #222; }
 
-        th { color: var(--accent-neon); }
-        .win { color: var(--win-green); font-weight: bold; }
-        .loss { color: var(--loss-red); font-weight: bold; }
+        .positive { color: var(--neon-green); }
+        .negative { color: var(--neon-red); }
 
-        /* Modal de Alerta */
-        #alertModal {
+        /* Alerta Educativo */
+        #reality-check {
             display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            justify-content: center;
-            align-items: center;
+            background: var(--neon-red);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 0.85rem;
+            text-align: center;
+            animation: blink 1s infinite;
         }
 
-        .modal-content {
-            background: var(--panel-bg);
-            padding: 30px;
-            border-radius: 10px;
-            border: 2px solid var(--loss-red);
-            text-align: center;
-            max-width: 400px;
-            color: #fff;
+        @keyframes blink { 
+            0% { opacity: 1; } 
+            50% { opacity: 0.6; } 
+            100% { opacity: 1; } 
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Painel de Operações</h1>
+<div class="dashboard">
+    <h1>Sniper Dashboard</h1>
 
-    <div class="input-group">
-        <label for="saldo">Saldo Atual da Banca ($) - Editável para Aportes</label>
-        <input type="number" id="saldo" step="0.01" value="100.00">
+    <div class="stat-card">
+        <label>Saldo da Banca ($)</label>
+        <input type="number" id="saldo" step="0.01" value="100.00" oninput="calcularMeta()">
     </div>
 
-    <div class="input-group">
-        <label for="porcentagem">Meta Diária (%)</label>
-        <input type="number" id="porcentagem" step="0.1" value="5.0">
+    <div class="stat-card">
+        <label>Meta Desejada (%)</label>
+        <input type="number" id="porcentagem" step="0.1" value="5.0" oninput="calcularMeta()">
     </div>
 
-    <div class="target-display">
-        Objetivo de hoje: <strong style="color: var(--win-green);" id="valorAlvo">$5.00</strong>
+    <div class="target-box">
+        <label>Objetivo Financeiro de Hoje</label>
+        <span id="valor-alvo">$ 5.00</span>
     </div>
 
-    <div class="input-group">
-        <label for="resultado">Resultado do Dia (+ Lucro ou - Prejuízo)</label>
-        <input type="number" id="resultado" step="0.01" placeholder="Ex: 15.00 ou -5.00">
+    <div class="stat-card" style="border-left-color: var(--neon-green);">
+        <label>Resultado Obtido hoje ($)</label>
+        <input type="number" id="resultado" step="0.01" placeholder="Ex: 10.00 ou -5.00">
     </div>
 
-    <button onclick="registrarDia()">Registrar Operação</button>
+    <button onclick="salvarProgresso()">Registrar Missão</button>
 
-    <table>
+    <div id="reality-check"></div>
+
+    <table class="history-table">
         <thead>
             <tr>
-                <th>Dia</th>
-                <th>Saldo Inicial</th>
-                <th>Resultado</th>
-                <th>Saldo Final</th>
+                <th>LOG</th>
+                <th>INICIAL</th>
+                <th>RESULT</th>
+                <th>FINAL</th>
             </tr>
         </thead>
-        <tbody id="historicoTabela">
-            </tbody>
+        <tbody id="log-corpo"></tbody>
     </table>
-
-    <button class="btn-clear" onclick="limparHistorico()">Resetar Diário</button>
-</div>
-
-<div id="alertModal">
-    <div class="modal-content">
-        <h2 style="color: var(--loss-red);">⚠️ ALERTA DE REALIDADE</h2>
-        <p id="alertMessage">Você fez um lucro alto hoje! Lembre-se: o CDI rende cerca de 10% AO ANO. Proteja seu capital e não devolva para o mercado.</p>
-        <button style="background: var(--accent-neon);" onclick="fecharModal()">Entendido</button>
-    </div>
 </div>
 
 <script>
-    let historico = JSON.parse(localStorage.getItem('tradingHistory')) || [];
-    let diaAtual = historico.length + 1;
+    let logs = JSON.parse(localStorage.getItem('sniper_logs')) || [];
 
-    // Atualiza o valor alvo em dinheiro sempre que o saldo ou a % mudarem
-    function atualizarAlvo() {
-        let saldo = parseFloat(document.getElementById('saldo').value) || 0;
-        let perc = parseFloat(document.getElementById('porcentagem').value) || 0;
-        let alvo = saldo * (perc / 100);
-        document.getElementById('valorAlvo').innerText = `$${alvo.toFixed(2)}`;
+    function calcularMeta() {
+        const saldo = parseFloat(document.getElementById('saldo').value) || 0;
+        const perc = parseFloat(document.getElementById('porcentagem').value) || 0;
+        const alvo = saldo * (perc / 100);
+        document.getElementById('valor-alvo').innerText = `$ ${alvo.toFixed(2)}`;
     }
 
-    // Escutadores de eventos para recalcular o alvo em tempo real
-    document.getElementById('saldo').addEventListener('input', atualizarAlvo);
-    document.getElementById('porcentagem').addEventListener('input', atualizarAlvo);
+    function salvarProgresso() {
+        const saldoInput = document.getElementById('saldo');
+        const saldoIni = parseFloat(saldoInput.value);
+        const res = parseFloat(document.getElementById('resultado').value);
+        const msgCheck = document.getElementById('reality-check');
 
-    function registrarDia() {
-        let saldoElement = document.getElementById('saldo');
-        let saldoInicial = parseFloat(saldoElement.value);
-        let resultado = parseFloat(document.getElementById('resultado').value);
+        if (isNaN(res)) return alert("Insira o resultado do dia!");
+
+        const saldoFinal = saldoIni + res;
         
-        if (isNaN(saldoInicial) || isNaN(resultado)) {
-            alert("Preencha o saldo e o resultado do dia.");
-            return;
+        // Logica de comparação com banco (CDB aprox 0.03% ao dia)
+        const rendimentoCDB = 0.03; 
+        const diasCDB = (res / (saldoIni * (rendimentoCDB/100))).toFixed(0);
+
+        if (res > 0) {
+            msgCheck.style.display = 'block';
+            msgCheck.innerText = `⚠️ ALERTA: O banco levaria aproximadamente ${diasCDB} dias para render o que você fez hoje. PROTEJA O LUCRO!`;
+        } else {
+            msgCheck.style.display = 'none';
         }
 
-        let saldoFinal = saldoInicial + resultado;
-
-        // Salva no histórico
-        historico.push({
-            dia: diaAtual,
-            saldoInicial: saldoInicial,
-            resultado: resultado,
-            saldoFinal: saldoFinal
+        // Adicionar ao histórico
+        logs.unshift({
+            data: new Date().toLocaleDateString('pt-BR'),
+            inicial: saldoIni,
+            res: res,
+            final: saldoFinal
         });
 
-        localStorage.setItem('tradingHistory', JSON.stringify(historico));
-
-        // Checagem de realidade (Alerta CDB/CDI)
-        let lucroPercentual = (resultado / saldoInicial) * 100;
-        if (lucroPercentual >= 5) {
-            document.getElementById('alertMessage').innerText = `Você lucrou ${lucroPercentual.toFixed(2)}% hoje! A poupança leva quase 1 ANO para render isso. Desligue o robô e vá descansar.`;
-            document.getElementById('alertModal').style.display = 'flex';
-        }
-
-        // Prepara para o dia seguinte
-        saldoElement.value = saldoFinal.toFixed(2);
-        document.getElementById('resultado').value = '';
-        diaAtual++;
+        localStorage.setItem('sniper_logs', JSON.stringify(logs));
         
-        atualizarAlvo();
+        // Atualizar campos para amanhã
+        saldoInput.value = saldoFinal.toFixed(2);
+        document.getElementById('resultado').value = '';
+        
+        calcularMeta();
         renderizarTabela();
     }
 
     function renderizarTabela() {
-        let tbody = document.getElementById('historicoTabela');
-        tbody.innerHTML = '';
-        
-        // Inverte o array para mostrar o dia mais recente no topo
-        let historicoInvertido = [...historico].reverse();
-
-        historicoInvertido.forEach(item => {
-            let row = `<tr>
-                <td>Dia ${item.dia}</td>
-                <td>$${item.saldoInicial.toFixed(2)}</td>
-                <td class="${item.resultado >= 0 ? 'win' : 'loss'}">${item.resultado >= 0 ? '+' : ''}$${item.resultado.toFixed(2)}</td>
-                <td>$${item.saldoFinal.toFixed(2)}</td>
-            </tr>`;
-            tbody.innerHTML += row;
+        const corpo = document.getElementById('log-corpo');
+        corpo.innerHTML = '';
+        logs.forEach(item => {
+            corpo.innerHTML += `
+                <tr>
+                    <td>${item.data}</td>
+                    <td>$${item.inicial.toFixed(2)}</td>
+                    <td class="${item.res >= 0 ? 'positive' : 'negative'}">${item.res >= 0 ? '+' : ''}${item.res.toFixed(2)}</td>
+                    <td>$${item.final.toFixed(2)}</td>
+                </tr>
+            `;
         });
     }
 
-    function limparHistorico() {
-        if(confirm("Tem certeza que deseja apagar todo o histórico?")) {
-            localStorage.removeItem('tradingHistory');
-            historico = [];
-            diaAtual = 1;
-            renderizarTabela();
-        }
-    }
-
-    function fecharModal() {
-        document.getElementById('alertModal').style.display = 'none';
-    }
-
-    // Inicialização ao abrir a página
+    // Iniciar
     window.onload = () => {
-        if (historico.length > 0) {
-            let ultimoDia = historico[historico.length - 1];
-            document.getElementById('saldo').value = ultimoDia.saldoFinal.toFixed(2);
+        if (logs.length > 0) {
+            document.getElementById('saldo').value = logs[0].final.toFixed(2);
         }
-        atualizarAlvo();
+        calcularMeta();
         renderizarTabela();
     };
 </script>
