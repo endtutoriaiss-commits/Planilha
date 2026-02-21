@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sniper Risk Tracker</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --panel-bg: #161b22;
+            --text-main: #c9d1d9;
+            --accent-neon: #58a6ff;
+            --win-green: #3fb950;
+            --loss-red: #f85149;
+            --border-color: #30363d;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--panel-bg);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 0 15px rgba(88, 166, 255, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--accent-neon);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #8b949e;
+        }
+
+        input {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-family: inherit;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-neon);
+            box-shadow: 0 0 5px rgba(88, 166, 255, 0.5);
+        }
+
+        .target-display {
+            background: rgba(88, 166, 255, 0.1);
+            border-left: 4px solid var(--accent-neon);
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+            font-size: 1.2em;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: var(--win-green);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background-color: #2ea043;
+        }
+
+        .btn-clear {
+            background-color: var(--loss-red);
+            margin-top: 15px;
+        }
+
+        .btn-clear:hover {
+            background-color: #da3633;
+        }
+
+        /* Tabela de Histórico */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            padding: 10px;
+            text-align: left;
+        }
+
+        th { color: var(--accent-neon); }
+        .win { color: var(--win-green); font-weight: bold; }
+        .loss { color: var(--loss-red); font-weight: bold; }
+
+        /* Modal de Alerta */
+        #alertModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--panel-bg);
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid var(--loss-red);
+            text-align: center;
+            max-width: 400px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Painel de Operações</h1>
+
+    <div class="input-group">
+        <label for="saldo">Saldo Atual da Banca ($) - Editável para Aportes</label>
+        <input type="number" id="saldo" step="0.01" value="100.00">
+    </div>
+
+    <div class="input-group">
+        <label for="porcentagem">Meta Diária (%)</label>
+        <input type="number" id="porcentagem" step="0.1" value="5.0">
+    </div>
+
+    <div class="target-display">
+        Objetivo de hoje: <strong style="color: var(--win-green);" id="valorAlvo">$5.00</strong>
+    </div>
+
+    <div class="input-group">
+        <label for="resultado">Resultado do Dia (+ Lucro ou - Prejuízo)</label>
+        <input type="number" id="resultado" step="0.01" placeholder="Ex: 15.00 ou -5.00">
+    </div>
+
+    <button onclick="registrarDia()">Registrar Operação</button>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Dia</th>
+                <th>Saldo Inicial</th>
+                <th>Resultado</th>
+                <th>Saldo Final</th>
+            </tr>
+        </thead>
+        <tbody id="historicoTabela">
+            </tbody>
+    </table>
+
+    <button class="btn-clear" onclick="limparHistorico()">Resetar Diário</button>
+</div>
+
+<div id="alertModal">
+    <div class="modal-content">
+        <h2 style="color: var(--loss-red);">⚠️ ALERTA DE REALIDADE</h2>
+        <p id="alertMessage">Você fez um lucro alto hoje! Lembre-se: o CDI rende cerca de 10% AO ANO. Proteja seu capital e não devolva para o mercado.</p>
+        <button style="background: var(--accent-neon);" onclick="fecharModal()">Entendido</button>
+    </div>
+</div>
+
+<script>
+    let historico = JSON.parse(localStorage.getItem('tradingHistory')) || [];
+    let diaAtual = historico.length + 1;
+
+    // Atualiza o valor alvo em dinheiro sempre que o saldo ou a % mudarem
+    function atualizarAlvo() {
+        let saldo = parseFloat(document.getElementById('saldo').value) || 0;
+        let perc = parseFloat(document.getElementById('porcentagem').value) || 0;
+        let alvo = saldo * (perc / 100);
+        document.getElementById('valorAlvo').innerText = `$${alvo.toFixed(2)}`;
+    }
+
+    // Escutadores de eventos para recalcular o alvo em tempo real
+    document.getElementById('saldo').addEventListener('input', atualizarAlvo);
+    document.getElementById('porcentagem').addEventListener('input', atualizarAlvo);
+
+    function registrarDia() {
+        let saldoElement = document.getElementById('saldo');
+        let saldoInicial = parseFloat(saldoElement.value);
+        let resultado = parseFloat(document.getElementById('resultado').value);
+        
+        if (isNaN(saldoInicial) || isNaN(resultado)) {
+            alert("Preencha o saldo e o resultado do dia.");
+            return;
+        }
+
+        let saldoFinal = saldoInicial + resultado;
+
+        // Salva no histórico
+        historico.push({
+            dia: diaAtual,
+            saldoInicial: saldoInicial,
+            resultado: resultado,
+            saldoFinal: saldoFinal
+        });
+
+        localStorage.setItem('tradingHistory', JSON.stringify(historico));
+
+        // Checagem de realidade (Alerta CDB/CDI)
+        let lucroPercentual = (resultado / saldoInicial) * 100;
+        if (lucroPercentual >= 5) {
+            document.getElementById('alertMessage').innerText = `Você lucrou ${lucroPercentual.toFixed(2)}% hoje! A poupança leva quase 1 ANO para render isso. Desligue o robô e vá descansar.`;
+            document.getElementById('alertModal').style.display = 'flex';
+        }
+
+        // Prepara para o dia seguinte
+        saldoElement.value = saldoFinal.toFixed(2);
+        document.getElementById('resultado').value = '';
+        diaAtual++;
+        
+        atualizarAlvo();
+        renderizarTabela();
+    }
+
+    function renderizarTabela() {
+        let tbody = document.getElementById('historicoTabela');
+        tbody.innerHTML = '';
+        
+        // Inverte o array para mostrar o dia mais recente no topo
+        let historicoInvertido = [...historico].reverse();
+
+        historicoInvertido.forEach(item => {
+            let row = `<tr>
+                <td>Dia ${item.dia}</td>
+                <td>$${item.saldoInicial.toFixed(2)}</td>
+                <td class="${item.resultado >= 0 ? 'win' : 'loss'}">${item.resultado >= 0 ? '+' : ''}$${item.resultado.toFixed(2)}</td>
+                <td>$${item.saldoFinal.toFixed(2)}</td>
+            </tr>`;
+            tbody.innerHTML += row;
+        });
+    }
+
+    function limparHistorico() {
+        if(confirm("Tem certeza que deseja apagar todo o histórico?")) {
+            localStorage.removeItem('tradingHistory');
+            historico = [];
+            diaAtual = 1;
+            renderizarTabela();
+        }
+    }
+
+    function fecharModal() {
+        document.getElementById('alertModal').style.display = 'none';
+    }
+
+    // Inicialização ao abrir a página
+    window.onload = () => {
+        if (historico.length > 0) {
+            let ultimoDia = historico[historico.length - 1];
+            document.getElementById('saldo').value = ultimoDia.saldoFinal.toFixed(2);
+        }
+        atualizarAlvo();
+        renderizarTabela();
+    };
+</script>
+
+</body>
+</html>
