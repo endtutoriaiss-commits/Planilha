@@ -16,7 +16,7 @@
         body {
             background-color: var(--bg-dark);
             color: white;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
             padding: 20px;
             display: flex;
@@ -71,8 +71,6 @@
             border-bottom: 1px dashed #444;
         }
 
-        input:focus { border-bottom-color: var(--neon-blue); }
-
         .target-box {
             background: rgba(0, 255, 65, 0.1);
             border: 1px solid var(--neon-green);
@@ -89,7 +87,7 @@
             text-shadow: 0 0 10px var(--neon-green);
         }
 
-        button {
+        button.main-btn {
             width: 100%;
             padding: 15px;
             background: var(--neon-green);
@@ -103,13 +101,13 @@
             box-shadow: 0 4px 0 #008f24;
         }
 
-        button:active { transform: translateY(3px); box-shadow: none; }
+        button.main-btn:active { transform: translateY(2px); box-shadow: none; }
 
         .history-table {
             width: 100%;
             margin-top: 30px;
             border-collapse: collapse;
-            font-size: 0.9rem;
+            font-size: 0.75rem;
         }
 
         th { text-align: left; color: #666; padding: 10px; border-bottom: 1px solid #333; }
@@ -118,23 +116,28 @@
         .positive { color: var(--neon-green); }
         .negative { color: var(--neon-red); }
 
-        /* Alerta Educativo */
+        .btn-delete {
+            background: none;
+            border: 1px solid #444;
+            color: #888;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 6px;
+        }
+
+        .btn-delete:hover { border-color: var(--neon-red); color: var(--neon-red); }
+
         #reality-check {
             display: none;
             background: var(--neon-red);
             color: white;
-            padding: 10px;
+            padding: 12px;
             border-radius: 8px;
             margin-top: 15px;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-align: center;
-            animation: blink 1s infinite;
-        }
-
-        @keyframes blink { 
-            0% { opacity: 1; } 
-            50% { opacity: 0.6; } 
-            100% { opacity: 1; } 
+            font-weight: bold;
+            border: 2px solid white;
         }
     </style>
 </head>
@@ -150,20 +153,20 @@
 
     <div class="stat-card">
         <label>Meta Desejada (%)</label>
-        <input type="number" id="porcentagem" step="0.1" value="5.0" oninput="calcularMeta()">
+        <input type="number" id="porcentagem" step="0.1" placeholder="Ex: 5" oninput="calcularMeta()">
     </div>
 
     <div class="target-box">
         <label>Objetivo Financeiro de Hoje</label>
-        <span id="valor-alvo">$ 5.00</span>
+        <span id="valor-alvo">$ 0.00</span>
     </div>
 
     <div class="stat-card" style="border-left-color: var(--neon-green);">
-        <label>Resultado Obtido hoje ($)</label>
+        <label>Resultado do Dia ($)</label>
         <input type="number" id="resultado" step="0.01" placeholder="Ex: 10.00 ou -5.00">
     </div>
 
-    <button onclick="salvarProgresso()">Registrar Missão</button>
+    <button class="main-btn" onclick="salvarProgresso()">Registrar Missão</button>
 
     <div id="reality-check"></div>
 
@@ -171,9 +174,10 @@
         <thead>
             <tr>
                 <th>LOG</th>
-                <th>INICIAL</th>
+                <th>INI</th>
                 <th>RESULT</th>
                 <th>FINAL</th>
+                <th>X</th>
             </tr>
         </thead>
         <tbody id="log-corpo"></tbody>
@@ -181,6 +185,10 @@
 </div>
 
 <script>
+    // Gerenciador de Sons (Links públicos de sons gamer)
+    const soundWin = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3'); 
+    const soundAlert = new Audio('https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3');
+
     let logs = JSON.parse(localStorage.getItem('sniper_logs')) || [];
 
     function calcularMeta() {
@@ -196,23 +204,24 @@
         const res = parseFloat(document.getElementById('resultado').value);
         const msgCheck = document.getElementById('reality-check');
 
-        if (isNaN(res)) return alert("Insira o resultado do dia!");
+        if (isNaN(res)) return alert("Insira o resultado obtido!");
 
         const saldoFinal = saldoIni + res;
         
-        // Logica de comparação com banco (CDB aprox 0.03% ao dia)
-        const rendimentoCDB = 0.03; 
-        const diasCDB = (res / (saldoIni * (rendimentoCDB/100))).toFixed(0);
+        // Efeito Sonoro de Sucesso
+        if(res > 0) soundWin.play();
 
-        if (res > 0) {
+        // Alerta CDB (Se ganhar mais de 1% no dia)
+        if (res > (saldoIni * 0.01)) {
+            soundAlert.play();
             msgCheck.style.display = 'block';
-            msgCheck.innerText = `⚠️ ALERTA: O banco levaria aproximadamente ${diasCDB} dias para render o que você fez hoje. PROTEJA O LUCRO!`;
+            msgCheck.innerText = `SISTEMA: Lucro detectado acima de 1%! Você superou o rendimento ANUAL de muitos bancos em 24h. PROTEJA O CAPITAL.`;
         } else {
             msgCheck.style.display = 'none';
         }
 
-        // Adicionar ao histórico
         logs.unshift({
+            id: Date.now(),
             data: new Date().toLocaleDateString('pt-BR'),
             inicial: saldoIni,
             res: res,
@@ -221,12 +230,26 @@
 
         localStorage.setItem('sniper_logs', JSON.stringify(logs));
         
-        // Atualizar campos para amanhã
         saldoInput.value = saldoFinal.toFixed(2);
         document.getElementById('resultado').value = '';
         
-        calcularMeta();
         renderizarTabela();
+        calcularMeta();
+    }
+
+    function excluirLinha(id) {
+        if(confirm("Deseja apagar este registro?")) {
+            logs = logs.filter(item => item.id !== id);
+            localStorage.setItem('sniper_logs', JSON.stringify(logs));
+            
+            // Ajusta o saldo para o valor do último log restante
+            if (logs.length > 0) {
+                document.getElementById('saldo').value = logs[0].final.toFixed(2);
+            }
+            
+            renderizarTabela();
+            calcularMeta();
+        }
     }
 
     function renderizarTabela() {
@@ -239,18 +262,18 @@
                     <td>$${item.inicial.toFixed(2)}</td>
                     <td class="${item.res >= 0 ? 'positive' : 'negative'}">${item.res >= 0 ? '+' : ''}${item.res.toFixed(2)}</td>
                     <td>$${item.final.toFixed(2)}</td>
+                    <td><button class="btn-delete" onclick="excluirLinha(${item.id})">🗑️</button></td>
                 </tr>
             `;
         });
     }
 
-    // Iniciar
     window.onload = () => {
         if (logs.length > 0) {
             document.getElementById('saldo').value = logs[0].final.toFixed(2);
         }
-        calcularMeta();
         renderizarTabela();
+        calcularMeta();
     };
 </script>
 
